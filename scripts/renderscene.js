@@ -34,7 +34,7 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  0, -30, 1),
+                    Vector4(0,  0, -30, 1),
                     Vector4(20,  0, -30, 1),
                     Vector4(20, 12, -30, 1),
                     Vector4(10, 20, -30, 1),
