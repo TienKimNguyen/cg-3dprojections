@@ -60,12 +60,8 @@ function Mat4x4Translate(mat4x4, tx, ty, tz) {
 }
 
 // set values of existing 4x4 matrix to the scale matrix
-function Mat4x4Scale(mat4x4, sx, sy, sz) 
-{
-    mat4x4.valus = [[sx,0,0,0],
-                    [0,sy,0,0],
-                    [0,sz,0,0],
-                    [0,0,0,1]];
+function Mat4x4Scale(mat4x4, sx, sy, sz) {
+    // mat4x4.values = ...;
 }
 
 // set values of existing 4x4 matrix to the rotate about x-axis matrix
@@ -79,11 +75,7 @@ function Mat4x4RotateX(mat4x4, theta) {
 
 // set values of existing 4x4 matrix to the rotate about y-axis matrix
 function Mat4x4RotateY(mat4x4, theta) {
-    let degree = (Math.PI/180)*theta;
-    mat4x4.values = [[Math.cos(degree), 0, Math.sin(degree), 0],
-                     [0,1,0,0],
-                     [-Math.sin(degree),0,Math.cos(degree),0],
-                     [0,0,0,1]];
+    // mat4x4.values = ...;
 }
 
 // set values of existing 4x4 matrix to the rotate about z-axis matrix
@@ -97,10 +89,7 @@ function Mat4x4RotateZ(mat4x4, theta) {
 
 // set values of existing 4x4 matrix to the shear parallel to the xy-plane matrix
 function Mat4x4ShearXY(mat4x4, shx, shy) {
-    mat4x4.values = [[1,0,shx,0],
-                     [0,1,shy,0],
-                     [0,0,1,0],
-                     [0,0,0,1]];
+    // mat4x4.values = ...;
 }
 
 // create a new 3-component vector with values x,y,z
