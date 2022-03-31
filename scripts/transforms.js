@@ -126,7 +126,7 @@ function mat4x4RotateY(mat4x4, theta) {
     let degree = (Math.PI/180)*theta;
     mat4x4.values = [[Math.cos(degree), 0, Math.sin(degree), 0],
                      [0, 1, 0, 0],
-                     [-Math.sin(degree), 0, Math.cos(degree), ],
+                     [-Math.sin(degree), 0, Math.cos(degree), 0],
                      [0, 0, 0, 1]];
 }
 
