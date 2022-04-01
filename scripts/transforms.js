@@ -9,6 +9,7 @@ function mat4x4Parallel(prp, srp, vup, clip)
     n_axis.normalize();
 
     let u_axis = vup.cross(n_axis);
+    u_axis.normalize();
     let v_axis = n_axis.cross(u_axis);
     
     // Center of window = [ (L+R)/2 , (T+B)/2 , -near ]
@@ -55,10 +56,8 @@ function mat4x4Parallel(prp, srp, vup, clip)
 function mat4x4Perspective(prp, srp, vup, clip) 
 {
     let n_axis = (prp.subtract(srp)).normalize();
-    //Is the u-axis automatically normalized??
     let u_axis = (vup.cross(n_axis)).normalize();
     let v_axis = n_axis.cross(u_axis);
-    //I remember cw having -near for the third entry, but I can't find it in the powerpoints?
     let cw = Vector3((clip[0]+clip[1])/2,(clip[2]+clip[3])/2,-clip[4]);
     let dop = cw.subtract(Vector3(0,0,0));
     // 1. translate PRP to origin
@@ -81,13 +80,7 @@ function mat4x4Perspective(prp, srp, vup, clip)
     let sperx = 2*clip[4]/((clip[1] - clip[0])*clip[5]);
     let spery = 2*clip[4]/((clip[3] - clip[2])*clip[5]);
     let sperz = 1/clip[5];
-    mat4x4Scale(scale,sperx,spery,sperz);
-    // I am confused about the steps from slides 21 and 22. I create Mper below
-    let mper = new Matrix(4,4);
-    mper.values = [[1,0,0,0],
-                   [0,1,0,0],
-                   [0,0,1,0],
-                   [0,0,-1,0]];
+    mat4x4Scale(scale,sperx,spery,sperz);    
     let transform = Matrix.multiply([scale,shear,rotate,translate]);
     return transform;
 }
@@ -105,7 +98,10 @@ function mat4x4MPar() {
 // create a 4x4 matrix to project a perspective image on the z=-1 plane
 function mat4x4MPer() {
     let mper = new Matrix(4, 4);
-    // mper.values = ...;
+    mper.values = [[1,0,0,0],
+                   [0,1,0,0],
+                   [0,0,1,0],
+                   [0,0,-1,0]];
     return mper;
 }
 
