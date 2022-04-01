@@ -16,9 +16,13 @@ function mat4x4Parallel(prp, srp, vup, clip)
 function mat4x4Perspective(prp, srp, vup, clip) 
 {
     // 1. translate PRP to origin
-
+    let translate = new Matrix(4,4);
+    mat4x4Translate(translate,-prp.x,-prp.y,-prp.z);
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
+    let rotate;
     // 3. shear such that CW is on the z-axis
+    let shear;
+
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
 
     // ...
