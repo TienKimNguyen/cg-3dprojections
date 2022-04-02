@@ -3,12 +3,12 @@ let ctx;
 let scene;
 let start_time;
 
-const LEFT =   32; // binary 100000
-const RIGHT =  16; // binary 010000
+const LEFT = 32; // binary 100000
+const RIGHT = 16; // binary 010000
 const BOTTOM = 8;  // binary 001000
-const TOP =    4;  // binary 000100
-const FAR =    2;  // binary 000010
-const NEAR =   1;  // binary 000001
+const TOP = 4;  // binary 000100
+const FAR = 2;  // binary 000010
+const NEAR = 1;  // binary 000001
 const FLOAT_EPSILON = 0.000001;
 
 // Initialization function - called when web page loads
@@ -34,16 +34,16 @@ function init() {
             {
                 type: 'generic',
                 vertices: [
-                    Vector4( 0,  0, -30, 1),
-                    Vector4(20,  0, -30, 1),
+                    Vector4(0, 0, -30, 1),
+                    Vector4(20, 0, -30, 1),
                     Vector4(20, 12, -30, 1),
                     Vector4(10, 20, -30, 1),
-                    Vector4( 0, 12, -30, 1),
-                    Vector4( 0,  0, -60, 1),
-                    Vector4(20,  0, -60, 1),
+                    Vector4(0, 12, -30, 1),
+                    Vector4(0, 0, -60, 1),
+                    Vector4(20, 0, -60, 1),
                     Vector4(20, 12, -60, 1),
                     Vector4(10, 20, -60, 1),
-                    Vector4( 0, 12, -60, 1)
+                    Vector4(0, 12, -60, 1)
                 ],
                 edges: [
                     [0, 1, 2, 3, 4, 0],
@@ -61,7 +61,7 @@ function init() {
 
     // event handler for pressing arrow keys
     document.addEventListener('keydown', onKeyDown, false);
-    
+
     // start animation loop
     start_time = performance.now(); // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
@@ -71,7 +71,7 @@ function init() {
 function animate(timestamp) {
     // step 1: calculate time (time since start)
     let time = timestamp - start_time;
-    
+
     // step 2: transform models based on time
     // TODO: implement this!
 
@@ -86,7 +86,7 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     console.log(scene);
-    
+
     // TODO: implement drawing here!
     // For each model, for each edge
     //  * transform to canonical view volume
@@ -146,26 +146,99 @@ function outcodePerspective(vertex, z_min) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLineParallel(line) {
     let result = null;
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
-    
-    // TODO: implement clipping here!
-    
+
+    if (out0 | out1 == 0) {
+        return line;
+    } else if (out0 & out1 != 0) {
+        return null;
+    } else {
+        // Choose an endpoint outside of the view volume
+        let selected = 0;
+        let selectedEndpoint = null;
+        if (out0 == 0 & out1 != 0) {
+            selected = out1;
+            selectedEndpoint = p1;
+        } else if (out0 != 0 && out1 == 0) {
+            selected = out0;
+            selectedEndpoint = p0;
+        } else {
+            selected = out0;
+            selectedEndpoint = p0;
+        }
+
+        // Calculate intersection point between line and corresponding edge
+        let intersect = new Vector3(0, 0, 0);
+        if (selected & LEFT == LEFT || selected & RIGHT == RIGHT){
+            if (selected & LEFT == LEFT){
+                intersect.x = -1;
+            } else {
+                intersect.x = 1; 
+            }
+            t = (intersect.x - p0.x) / (p1.x - p0.x);
+            intersect.y = p0.y + t * (p1.y - p0.y);
+            intersect.z = p0.z + t * (p1.z - p0.z);
+        } else if (selected & BOTTOM == BOTTOM || selected & TOP == TOP){
+            if (selected & BOTTOM == BOTTOM){
+                intersect.y = -1;
+            } else {
+                intersect.y = 1;
+            }
+            t = (intersect.y - p0.y) / (p1.y - p0.y);
+            intersect.x = p0.x + t * (p1.x - p0.x);
+            intersect.z = p0.z + t * (p1.z - p0.z);
+        } else if (selected & FAR == FAR || selected & NEAR == NEAR){
+            if (selected & FAR == FAR) {
+                intersect.z = -1;
+            } else {
+                intersect.z = 0;
+            }
+            t = (intersect.z - p0.z) / (p1.z - p0.z);
+            intersect.x = p0.x + t * (p1.x - p0.x);
+            intersect.y = p0.y + t * (p1.y - p0.y);
+        }       
+        
+        // Replace selected endpoint with this intersection point
+        if (selectedEndpoint == p0){
+            p0 = intersect;
+            out0 = outcodeParallel(p0);
+        } else {
+            p1 = intersect;
+            out1 = outcodeParallel(p1);
+        }
+       
+        result = {  
+            pt0: {
+                x: p0.x,
+                y: p0.y,
+                z: p0.z
+            },
+            pt1: {
+                x: p1.x,
+                y: p1.y,
+                z: p1.z
+            }
+        }
+
+        clipLineParallel(result);
+    }
+
     return result;
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) {
     let result = null;
-    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z); 
+    let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
-    
+
     // TODO: implement clipping here!
-    
+
     return result;
 }
 
@@ -214,16 +287,16 @@ function loadNewScene() {
             if (scene.models[i].type === 'generic') {
                 for (let j = 0; j < scene.models[i].vertices.length; j++) {
                     scene.models[i].vertices[j] = Vector4(scene.models[i].vertices[j][0],
-                                                          scene.models[i].vertices[j][1],
-                                                          scene.models[i].vertices[j][2],
-                                                          1);
+                        scene.models[i].vertices[j][1],
+                        scene.models[i].vertices[j][2],
+                        1);
                 }
             }
             else {
                 scene.models[i].center = Vector4(scene.models[i].center[0],
-                                                 scene.models[i].center[1],
-                                                 scene.models[i].center[2],
-                                                 1);
+                    scene.models[i].center[1],
+                    scene.models[i].center[2],
+                    1);
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
