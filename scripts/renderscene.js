@@ -170,6 +170,7 @@ function clipLinePerspective(line, z_min) {
 }
 
 // Called when user presses a key on the keyboard down 
+// add things
 function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
