@@ -90,7 +90,7 @@ function mat4x4MPar() {
     mpar.values = [[1, 0, 0, 0],
                    [0, 1, 0, 0],
                    [0, 0, 0, 0],
-                   [0, 0, 0, 1]]
+                   [0, 0, 0, 1]];
     return mpar;
 }
 
