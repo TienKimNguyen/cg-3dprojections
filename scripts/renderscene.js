@@ -222,7 +222,7 @@ function clipLineParallel(line) {
                 y: p1.y,
                 z: p1.z
             }
-        }
+        } // SARAH: semicolon here? see scene in init()
         // SARAH: we need to set this equal to result then return because nothing is being done - explain later
         // KIM: I used recursion here (you used while loop, pretty much the same goal)
         clipLineParallel(result);
@@ -235,9 +235,22 @@ function clipLineParallel(line) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 function clipLinePerspective(line, z_min) 
 {
-    let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+    let result = {  
+                    pt0: 
+                    {
+                        x: p0.x,
+                        y: p0.y,
+                        z: p0.z
+                    },
+                    pt1: 
+                    {
+                        x: p1.x,
+                        y: p1.y,
+                        z: p1.z
+                    }
+                 };
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
 
@@ -255,25 +268,23 @@ function clipLinePerspective(line, z_min)
         if(out0 | out1 == 0)
         {
             trivial = TRUE;
-            result = line;
         }
         else if(out0 & out1 != 0)
         {
             trivial = TRUE;
+            result = null;
         }
         else
         {
             // choose point on outside, I always choose p0. If p0 is inside, switch with p1
             if(out0 == 0)
             {
-                // ask about the references thing
                 let temp = p0;
                 p0 = p1;
                 p1 = temp;
                 out0 = outcodePerspective(p0, z_min);
                 out1 = outcodePerspective(p1, z_min);
             }
-            // check about deltas being 1 - 0 or 0 - 1 (reference notebook)
             deltax = p1.x - p0.x;
             deltay = p1.y - p0.y;
             deltaz = p1.z - p0.z;
@@ -309,16 +320,26 @@ function clipLinePerspective(line, z_min)
             intersect.y = (1-t)*p0.y + t*p1.y;
             intersect.z = (1-t)*p0.z + t*p1.z;
             // set my selected point, p0, to the intersection point
-            // I get confused about references, ask about this again maybe
             p0 = intersect;
-
             // KIM: We don't want to update/trim the old line. We want to make a copy
             //      of it and work with that. That's why we return a new line (a.k.a.result)
             //      result is an object with 2 items/points (pt0 and pt1), and each point has
-            //      its coordinates x, y, z, which we calculated
+            //      its coordinates x, y, z, which we calculated - UPDATED, but ask about it
             // set my new line since line is the result so she's ready to go - right???
-            line.pt0 = p0;
-            line.pt1 = p1;
+            result = {  
+                        pt0: 
+                        {
+                            x: p0.x,
+                            y: p0.y,
+                            z: p0.z
+                        },
+                        pt1: 
+                        {
+                            x: p1.x,
+                            y: p1.y,
+                            z: p1.z
+                        }
+                     };
             // recalculate endpoint outcode; since I might have switched p0 and p1, I also recalculate for p1
             out0 = outcodePerspective(p0, z_min);
             out1 = outcodePerspective(p1, z_min);
