@@ -152,20 +152,19 @@ function clipLineParallel(line) {
     let out1 = outcodeParallel(p1);
 
     if (out0 | out1 == 0) {
-        return line;
+        result = line;
+        return result;
     } else if (out0 & out1 != 0) {
         return null;
     } else {
         // Choose an endpoint outside of the view volume
-        // SARAH: I think we can do this selection in less lines
+        // SARAH: I think we can do this selection in less lines (Resolved)
+        // KIM: Updated else condition, eliminated else if
         let selected = 0;
         let selectedEndpoint = null;
         if (out0 == 0 & out1 != 0) {
             selected = out1;
             selectedEndpoint = p1;
-        } else if (out0 != 0 && out1 == 0) {
-            selected = out0;
-            selectedEndpoint = p0;
         } else {
             selected = out0;
             selectedEndpoint = p0;
@@ -211,6 +210,7 @@ function clipLineParallel(line) {
             out1 = outcodeParallel(p1);
         }
        
+        // Create a new line for clipped line
         result = {  
             pt0: {
                 x: p0.x,
@@ -224,9 +224,11 @@ function clipLineParallel(line) {
             }
         }
         // SARAH: we need to set this equal to result then return because nothing is being done - explain later
+        // KIM: I used recursion here (you used while loop, pretty much the same goal)
         clipLineParallel(result);
     }
     // SARAH: will this return ever happen? should it? (if we fix the above problem it should)
+    // KIM: It returns the clipped line
     return result;
 }
 
@@ -309,6 +311,11 @@ function clipLinePerspective(line, z_min)
             // set my selected point, p0, to the intersection point
             // I get confused about references, ask about this again maybe
             p0 = intersect;
+
+            // KIM: We don't want to update/trim the old line. We want to make a copy
+            //      of it and work with that. That's why we return a new line (a.k.a.result)
+            //      result is an object with 2 items/points (pt0 and pt1), and each point has
+            //      its coordinates x, y, z, which we calculated
             // set my new line since line is the result so she's ready to go - right???
             line.pt0 = p0;
             line.pt1 = p1;
