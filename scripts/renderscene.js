@@ -152,7 +152,6 @@ function clipLineParallel(line) {
     let out1 = outcodeParallel(p1);
 
     if (out0 | out1 == 0) {
-        // SARAH: breaking out with returns scares me - should it?
         return line;
     } else if (out0 & out1 != 0) {
         return null;
@@ -174,8 +173,6 @@ function clipLineParallel(line) {
 
         // Calculate intersection point between line and corresponding edge
         let intersect = new Vector3(0, 0, 0);
-        // SARAH: since the outcode function uses else if statement, our outcodes (ex, selected) only have 1 in one bit and 0 elsewhere, right? I am confused about this
-        // SARAH: if my idea above is true, I don't think we need to do the bitwise AND here for argument/check (I don't know vocab) in each
         if (selected & LEFT == LEFT || selected & RIGHT == RIGHT){
             if (selected & LEFT == LEFT){
                 intersect.x = -1;
@@ -226,10 +223,10 @@ function clipLineParallel(line) {
                 z: p1.z
             }
         }
-        // SARAH: recursive always scares me - should it?
+        // SARAH: we need to set this equal to result then return because nothing is being done - explain later
         clipLineParallel(result);
     }
-    // SARAH: will this return ever happen? should it?
+    // SARAH: will this return ever happen? should it? (if we fix the above problem it should)
     return result;
 }
 
@@ -250,7 +247,6 @@ function clipLinePerspective(line, z_min)
     let x = 0;
     let y = 0; 
     let z = 0;
-    let intersect = new Vector3(x,y,z);
     // Loop until we get trivial results - first loop will always run
     while(!trivial)
     {
@@ -279,31 +275,32 @@ function clipLinePerspective(line, z_min)
             deltax = p1.x - p0.x;
             deltay = p1.y - p0.y;
             deltaz = p1.z - p0.z;
-            // find first bit set to 1, I think they should waterfall down in this order, no extra work needed??
-            if(out0 == LEFT)
+            let intersect = Vector3(x,y,z);
+            // find first bit set to 1, I think they should waterfall down in this order, no extra work needed?? - wrong
+            if(out0 & LEFT == LEFT)
             {
                 t = (-p0.x + p0.z)/(deltax - deltaz);
             }
-            else if(out0 == RIGHT)
+            else if(out0 & RIGHT == RIGHT)
             {
                 t = (p0.x + p0.z)/(-deltax - deltaz);
             }
-            else if(out0 == BOTTOM)
+            else if(out0 & BOTTOM == BOTTOM)
             {
                 t = (-p0.y + p0.z)/(deltay - deltaz);
             }
-            else if(out0 == TOP)
+            else if(out0 & TOP == TOP)
             {
                 t = (p0.y + p0.z)/(-deltay - deltaz);
             }
-            else if(out0 == NEAR)
-            {
-                t = (p0.z - z_min)/(-deltaz);
-            }
-            // I hope else is okay, I think it should always give one of these 6 outcodes hopefully
-            else
+            else if(out0 & FAR == FAR)
             {
                 t = (-p0.z - 1)/(deltaz);
+            }
+            // I hope else is okay at this point
+            else
+            {
+                t = (p0.z - z_min)/(-deltaz);
             }
             // calculate intersection point based on t calculated above
             intersect.x = (1-t)*p0.x + t*p1.x;
