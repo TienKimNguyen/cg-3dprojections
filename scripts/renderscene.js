@@ -152,11 +152,13 @@ function clipLineParallel(line) {
     let out1 = outcodeParallel(p1);
 
     if (out0 | out1 == 0) {
+        // SARAH: breaking out with returns scares me - should it?
         return line;
     } else if (out0 & out1 != 0) {
         return null;
     } else {
         // Choose an endpoint outside of the view volume
+        // SARAH: I think we can do this selection in less lines
         let selected = 0;
         let selectedEndpoint = null;
         if (out0 == 0 & out1 != 0) {
@@ -172,6 +174,8 @@ function clipLineParallel(line) {
 
         // Calculate intersection point between line and corresponding edge
         let intersect = new Vector3(0, 0, 0);
+        // SARAH: since the outcode function uses else if statement, our outcodes (ex, selected) only have 1 in one bit and 0 elsewhere, right? I am confused about this
+        // SARAH: if my idea above is true, I don't think we need to do the bitwise AND here for argument/check (I don't know vocab) in each
         if (selected & LEFT == LEFT || selected & RIGHT == RIGHT){
             if (selected & LEFT == LEFT){
                 intersect.x = -1;
@@ -222,10 +226,10 @@ function clipLineParallel(line) {
                 z: p1.z
             }
         }
-
+        // SARAH: recursive always scares me - should it?
         clipLineParallel(result);
     }
-
+    // SARAH: will this return ever happen? should it?
     return result;
 }
 
