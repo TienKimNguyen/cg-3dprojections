@@ -230,15 +230,92 @@ function clipLineParallel(line) {
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
-function clipLinePerspective(line, z_min) {
+function clipLinePerspective(line, z_min) 
+{
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
     let out0 = outcodePerspective(p0, z_min);
     let out1 = outcodePerspective(p1, z_min);
 
-    // TODO: implement clipping here!
-
+    let trivial = FALSE;
+    let t = 0;
+    let deltax = 0;
+    let deltay = 0;
+    let deltaz = 0;
+    let x = 0;
+    let y = 0; 
+    let z = 0;
+    let intersect = new Vector3(x,y,z);
+    // Loop until we get trivial results - first loop will always run
+    while(!trivial)
+    {
+        if(out0 | out1 == 0)
+        {
+            trivial = TRUE;
+            result = line;
+        }
+        else if(out0 & out1 != 0)
+        {
+            trivial = TRUE;
+        }
+        else
+        {
+            // choose point on outside, I always choose p0. If p0 is inside, switch with p1
+            if(out0 == 0)
+            {
+                // ask about the references thing
+                let temp = p0;
+                p0 = p1;
+                p1 = temp;
+                out0 = outcodePerspective(p0, z_min);
+                out1 = outcodePerspective(p1, z_min);
+            }
+            // check about deltas being 1 - 0 or 0 - 1 (reference notebook)
+            deltax = p1.x - p0.x;
+            deltay = p1.y - p0.y;
+            deltaz = p1.z - p0.z;
+            // find first bit set to 1, I think they should waterfall down in this order, no extra work needed??
+            if(out0 == LEFT)
+            {
+                t = (-p0.x + p0.z)/(deltax - deltaz);
+            }
+            else if(out0 == RIGHT)
+            {
+                t = (p0.x + p0.z)/(-deltax - deltaz);
+            }
+            else if(out0 == BOTTOM)
+            {
+                t = (-p0.y + p0.z)/(deltay - deltaz);
+            }
+            else if(out0 == TOP)
+            {
+                t = (p0.y + p0.z)/(-deltay - deltaz);
+            }
+            else if(out0 == NEAR)
+            {
+                t = (p0.z - z_min)/(-deltaz);
+            }
+            // I hope else is okay, I think it should always give one of these 6 outcodes hopefully
+            else
+            {
+                t = (-p0.z - 1)/(deltaz);
+            }
+            // calculate intersection point based on t calculated above
+            intersect.x = (1-t)*p0.x + t*p1.x;
+            intersect.y = (1-t)*p0.y + t*p1.y;
+            intersect.z = (1-t)*p0.z + t*p1.z;
+            // set my selected point, p0, to the intersection point
+            // I get confused about references, ask about this again maybe
+            p0 = intersect;
+            // set my new line since line is the result so she's ready to go - right???
+            line.pt0 = p0;
+            line.pt1 = p1;
+            // recalculate endpoint outcode; since I might have switched p0 and p1, I also recalculate for p1
+            out0 = outcodePerspective(p0, z_min);
+            out1 = outcodePerspective(p1, z_min);
+        }
+    }
     return result;
 }
 
