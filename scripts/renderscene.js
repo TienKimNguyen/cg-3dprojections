@@ -158,8 +158,6 @@ function clipLineParallel(line) {
         return null;
     } else {
         // Choose an endpoint outside of the view volume
-        // SARAH: I think we can do this selection in less lines (Resolved)
-        // KIM: Updated else condition, eliminated else if
         let selected = 0;
         let selectedEndpoint = null;
         if (out0 == 0 & out1 != 0) {
@@ -222,13 +220,9 @@ function clipLineParallel(line) {
                 y: p1.y,
                 z: p1.z
             }
-        } // SARAH: semicolon here? see scene in init()
-        // SARAH: we need to set this equal to result then return because nothing is being done - explain later
-        // KIM: I used recursion here (you used while loop, pretty much the same goal)
-        clipLineParallel(result);
+        }; 
+        result = clipLineParallel(result);
     }
-    // SARAH: will this return ever happen? should it? (if we fix the above problem it should)
-    // KIM: It returns the clipped line
     return result;
 }
 
@@ -310,7 +304,6 @@ function clipLinePerspective(line, z_min)
             {
                 t = (-p0.z - 1)/(deltaz);
             }
-            // I hope else is okay at this point
             else
             {
                 t = (p0.z - z_min)/(-deltaz);
