@@ -47,8 +47,7 @@ function mat4x4Parallel(prp, srp, vup, clip)
     let sy = 2 / (clip[3] - clip[2]);   // sy = 2 / (T - B)
     let sz = 1 / clip[5];               // sz = 1 / far
     mat4x4Scale(scale, sx, sy, sz);
-    // SARAH: I think this is backwards
-    let transform = Matrix.multiply([translate, rotate, shear, translateClipping, scale]);
+    let transform = Matrix.multiply([scale, translateClipping, shear, rotate, translate]);
     return transform;
 }
 
