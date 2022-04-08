@@ -10,6 +10,7 @@ function mat4x4Parallel(prp, srp, vup, clip)
 
     let u_axis = vup.cross(n_axis);
     u_axis.normalize();
+    
     let v_axis = n_axis.cross(u_axis);
     
     // Center of window = [ (L+R)/2 , (T+B)/2 , -near ]
@@ -18,8 +19,7 @@ function mat4x4Parallel(prp, srp, vup, clip)
     // Direction of Projection
     // prp at origin is [0, 0, 0]
     let dop = cw.subtract(Vector3(0, 0, 0));
-
-
+    
     // 1. translate PRP to origin
     let translate = new Matrix(4, 4);
     mat4x4Translate(translate, -prp.x, -prp.y, -prp.z);
@@ -46,41 +46,53 @@ function mat4x4Parallel(prp, srp, vup, clip)
     let sx = 2 / (clip[1] - clip[0]);   // sx = 2 / (R - L)
     let sy = 2 / (clip[3] - clip[2]);   // sy = 2 / (T - B)
     let sz = 1 / clip[5];               // sz = 1 / far
+    
     mat4x4Scale(scale, sx, sy, sz);
     let transform = Matrix.multiply([scale, translateClipping, shear, rotate, translate]);
+    
     return transform;
 }
 
 // create a 4x4 matrix to the perspective projection / view matrix
 function mat4x4Perspective(prp, srp, vup, clip) 
 {
-    let n_axis = (prp.subtract(srp)).normalize();
-    let u_axis = (vup.cross(n_axis)).normalize();
+    let n_axis = prp.subtract(srp);
+    n_axis.normalize();
+
+    let u_axis = vup.cross(n_axis);
+    u_axis.normalize();
+    
     let v_axis = n_axis.cross(u_axis);
+   
     let cw = Vector3((clip[0]+clip[1])/2,(clip[2]+clip[3])/2,-clip[4]);
     let dop = cw.subtract(Vector3(0,0,0));
+    
     // 1. translate PRP to origin
     let translate = new Matrix(4,4);
     mat4x4Translate(translate,-prp.x,-prp.y,-prp.z);
+    
     // 2. rotate VRC such that (u,v,n) align with (x,y,z)
     let rotate = new Matrix(4,4);
     rotate.values = [[u_axis.x, u_axis.y, u_axis.z, 0],
                      [v_axis.x, v_axis.y, v_axis.z, 0],
                      [n_axis.x, n_axis.y, n_axis.z, 0],
                      [0, 0, 0, 1]];
+    
     // 3. shear such that CW is on the z-axis
     let shear = new Matrix(4,4);
-    //For perspective, shear is the same as parallel??
     let shx = -dop.x/dop.z;
     let shy = -dop.y/dop.z;
     mat4x4ShearXY(shear,shx,shy);
+    
     // 4. scale such that view volume bounds are ([z,-z], [z,-z], [-1,zmin])
     let scale = new Matrix(4,4);
     let sperx = 2*clip[4]/((clip[1] - clip[0])*clip[5]);
     let spery = 2*clip[4]/((clip[3] - clip[2])*clip[5]);
     let sperz = 1/clip[5];
+    
     mat4x4Scale(scale,sperx,spery,sperz);    
     let transform = Matrix.multiply([scale,shear,rotate,translate]);
+    
     return transform;
 }
 
@@ -97,10 +109,10 @@ function mat4x4MPar() {
 // create a 4x4 matrix to project a perspective image on the z=-1 plane
 function mat4x4MPer() {
     let mper = new Matrix(4, 4);
-    mper.values = [[1,0,0,0],
-                   [0,1,0,0],
-                   [0,0,1,0],
-                   [0,0,-1,0]];
+    mper.values = [[1, 0, 0, 0],
+                   [0, 1, 0, 0],
+                   [0, 0, 1, 0],
+                   [0, 0, -1, 0]];
     return mper;
 }
 
