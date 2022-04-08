@@ -13,6 +13,7 @@ const FLOAT_EPSILON = 0.000001;
 
 // Initialization function - called when web page loads
 function init() {
+    // test transforms with console.log(mat4x4perspectvit(etc))
     let w = 800;
     let h = 600;
     view = document.getElementById('view');
@@ -343,7 +344,10 @@ function clipLinePerspective(line, z_min)
 
 // Called when user presses a key on the keyboard down 
 // add things
-function onKeyDown(event) {
+function onKeyDown(event) 
+{
+    let n_axis = scene.prp.subtract(scene.srp);
+    let u_axis = scene.vup.cross(n_axis);
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
@@ -353,15 +357,23 @@ function onKeyDown(event) {
             break;
         case 65: // A key
             console.log("A");
+            scene.prp.subtract(u_axis);
+            scene.srp.subtract(u_axis);
             break;
         case 68: // D key
             console.log("D");
+            scene.prp.add(u_axis);
+            scene.srp.add(u_axis);
             break;
         case 83: // S key
             console.log("S");
+            scene.prp.add(n_axis);
+            scene.srp.add(n_axis);
             break;
         case 87: // W key
             console.log("W");
+            scene.prp.subtract(n_axis);
+            scene.srp.subtract(n_axis);
             break;
     }
 }
