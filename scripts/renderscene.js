@@ -397,8 +397,10 @@ function clipLinePerspective(line, z_min) {
 // add things
 function onKeyDown(event) 
 {
-    let n_axis = scene.prp.subtract(scene.srp);
-    let u_axis = scene.vup.cross(n_axis);
+    let n_axis = scene.view.prp.subtract(scene.view.srp);
+    let u_axis = scene.view.vup.cross(n_axis);
+    n_axis.normalize();
+    u_axis.normalize();
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
@@ -408,25 +410,28 @@ function onKeyDown(event)
             break;
         case 65: // A key
             console.log("A");
-            scene.prp.subtract(u_axis);
-            scene.srp.subtract(u_axis);
+            scene.view.prp = scene.view.prp.add(u_axis);
+            scene.view.srp = scene.view.srp.add(u_axis);
             break;
         case 68: // D key
             console.log("D");
-            scene.prp.add(u_axis);
-            scene.srp.add(u_axis);
+            scene.view.prp = scene.view.prp.subtract(u_axis);
+            scene.view.srp = scene.view.srp.subtract(u_axis);
             break;
         case 83: // S key
             console.log("S");
-            scene.prp.add(n_axis);
-            scene.srp.add(n_axis);
+            scene.view.prp = scene.view.prp.add(n_axis);
+            scene.view.srp = scene.view.srp.add(n_axis);
             break;
         case 87: // W key
             console.log("W");
-            scene.prp.subtract(n_axis);
-            scene.srp.subtract(n_axis);
+            scene.view.prp = scene.view.prp.subtract(n_axis);
+            scene.view.srp = scene.view.srp.subtract(n_axis);
             break;
     }
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, 800, 600);
+    drawScene();
 }
 
 ///////////////////////////////////////////////////////////////////////////
