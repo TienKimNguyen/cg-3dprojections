@@ -126,7 +126,8 @@ function drawScene() {
                 if (projectionType == "parallel") {
                     clippedEdge = clipLineParallel(edge);
                 } else {
-                    clippedEdge = clipLinePerspective(edge);
+                    let z_min = -scene.view.clip[5] / scene.view.clip[4];
+                    clippedEdge = clipLinePerspective(edge, z_min);
                 }
                 clippedLines.push(clippedEdge); // add clipped edge to clippedLines array
             }
