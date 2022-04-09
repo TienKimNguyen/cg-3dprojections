@@ -25,11 +25,11 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
-            prp: Vector3(44, 20, -16),
-            srp: Vector3(20, 20, -40),
+            type: 'parallel',
+            prp: Vector3(44, 20, -20),
+            srp: Vector3(20, 20, -45),
             vup: Vector3(0, 1, 0),
-            clip: [-19, 5, -10, 8, 12, 100]
+            clip: [-20, 15, -20, 15, 12, 100]
         },
         models: [
             {
@@ -56,7 +56,7 @@ function init() {
                     [4, 9]
                 ],
                 matrix: new Matrix(4, 4)
-            }
+            }, 
         ]
     };
 
@@ -99,7 +99,7 @@ function drawScene() {
         transform = mat4x4Perspective(scene.view.prp, scene.view.srp, scene.view.vup, scene.view.clip);
         projection_M = mat4x4MPer();
     }
-    
+
     // CLIP against the canonical view volume
     let models = scene.models; // array of models
     for (let i = 0; i < models.length; i++) { // for each model
@@ -121,7 +121,7 @@ function drawScene() {
                     pt0: pt0,
                     pt1: pt1
                 };
-                
+
                 let clippedEdge = null; // clipped edge
                 if (projectionType == "parallel") {
                     clippedEdge = clipLineParallel(edge);
@@ -137,23 +137,23 @@ function drawScene() {
         // Translate and scale to the framebuffer bounds ([O, width] and [0,height] respectively).
         let pt0Array = []; // array containing 1st endpoint
         let pt1Array = []; // array containing 2nd endpoint
-        
-        let v = new Matrix(4,4); // matrix for transform and scale to fit the size of screen
-        v.values = [[view.width/2, 0, 0, view.width/2],
-                    [0, view.height/2, 0, view.height/2],
-                    [0, 0, 1, 0],
-                    [0, 0, 0, 1]];
-    
+
+        let v = new Matrix(4, 4); // matrix for transform and scale to fit the size of screen
+        v.values = [[view.width / 2, 0, 0, view.width / 2],
+        [0, view.height / 2, 0, view.height / 2],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]];
+
         for (let i = 0; i < clippedLines.length; i++) {
             // Change it back to Vector 4 b/c clippedLines array contains only Vector3's
             let point0 = Vector4(clippedLines[i].pt0.x, clippedLines[i].pt0.y, clippedLines[i].pt0.z, 1);
             let point1 = Vector4(clippedLines[i].pt1.x, clippedLines[i].pt1.y, clippedLines[i].pt1.z, 1);
             pt0Array.push(Matrix.multiply([v, projection_M, point0]));
-            pt1Array.push(Matrix.multiply([v, projection_M, point1])) ;
+            pt1Array.push(Matrix.multiply([v, projection_M, point1]));
         }
 
         // Convert to Cartesian
-        for (let i = 0; i < pt0Array.length; i++){
+        for (let i = 0; i < pt0Array.length; i++) {
             // For point 1
             let x0 = pt0Array[i].x / pt0Array[i].w;
             let y0 = pt0Array[i].y / pt0Array[i].w;
@@ -168,7 +168,7 @@ function drawScene() {
         }
 
         // Draw line
-        for (let i = 0; i < pt0Array.length; i++){
+        for (let i = 0; i < pt0Array.length; i++) {
             drawLine(pt0Array[i].x, pt0Array[i].y, pt1Array[i].x, pt1Array[i].y);
         }
     }
@@ -230,69 +230,71 @@ function clipLineParallel(line) {
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
 
-    if (out0 | out1 == 0) {
-        result = line;
-        return result;
-    } else if (out0 & out1 != 0) {
-        return null;
-    } else {
-        // Choose an endpoint outside of the view volume
-        let selected = 0;
-        let selectedEndpoint = null;
-        if (out0 == 0 & out1 != 0) {
-            selected = out1;
-            selectedEndpoint = p1;
+    let trivial = false;
+    while (!trivial) {
+        if (out0 | out1 == 0) {
+            result = line;
+            trivial = true;
+        } else if (out0 & out1 != 0) {
+            trivial = true;
         } else {
-            selected = out0;
-            selectedEndpoint = p0;
-        }
-
-        // Calculate intersection point between line and corresponding edge
-        let intersect = new Vector3(0, 0, 0);
-        if (selected & LEFT == LEFT || selected & RIGHT == RIGHT) {
-            if (selected & LEFT == LEFT) {
-                intersect.x = -1;
+            // Choose an endpoint outside of the view volume
+            let selected = 0;
+            let selectedEndpoint = null;
+            if (out0 == 0 & out1 != 0) {
+                selected = out1;
+                selectedEndpoint = p1;
             } else {
-                intersect.x = 1;
+                selected = out0;
+                selectedEndpoint = p0;
             }
-            t = (intersect.x - p0.x) / (p1.x - p0.x);
-            intersect.y = p0.y + t * (p1.y - p0.y);
-            intersect.z = p0.z + t * (p1.z - p0.z);
-        } else if (selected & BOTTOM == BOTTOM || selected & TOP == TOP) {
-            if (selected & BOTTOM == BOTTOM) {
-                intersect.y = -1;
-            } else {
-                intersect.y = 1;
-            }
-            t = (intersect.y - p0.y) / (p1.y - p0.y);
-            intersect.x = p0.x + t * (p1.x - p0.x);
-            intersect.z = p0.z + t * (p1.z - p0.z);
-        } else if (selected & FAR == FAR || selected & NEAR == NEAR) {
-            if (selected & FAR == FAR) {
-                intersect.z = -1;
-            } else {
-                intersect.z = 0;
-            }
-            t = (intersect.z - p0.z) / (p1.z - p0.z);
-            intersect.x = p0.x + t * (p1.x - p0.x);
-            intersect.y = p0.y + t * (p1.y - p0.y);
-        }
 
-        // Replace selected endpoint with this intersection point
-        if (selectedEndpoint == p0) {
-            p0 = intersect;
-            out0 = outcodeParallel(p0);
-        } else {
-            p1 = intersect;
-            out1 = outcodeParallel(p1);
-        }
+            // Calculate intersection point between line and corresponding edge
+            let intersect = new Vector3(0, 0, 0);
+            if (selected & LEFT == LEFT || selected & RIGHT == RIGHT) {
+                if (selected & LEFT == LEFT) {
+                    intersect.x = -1;
+                } else {
+                    intersect.x = 1;
+                }
+                t = (intersect.x - p0.x) / (p1.x - p0.x);
+                intersect.y = p0.y + t * (p1.y - p0.y);
+                intersect.z = p0.z + t * (p1.z - p0.z);
+            } else if (selected & BOTTOM == BOTTOM || selected & TOP == TOP) {
+                if (selected & BOTTOM == BOTTOM) {
+                    intersect.y = -1;
+                } else {
+                    intersect.y = 1;
+                }
+                t = (intersect.y - p0.y) / (p1.y - p0.y);
+                intersect.x = p0.x + t * (p1.x - p0.x);
+                intersect.z = p0.z + t * (p1.z - p0.z);
+            } else if (selected & FAR == FAR || selected & NEAR == NEAR) {
+                if (selected & FAR == FAR) {
+                    intersect.z = -1;
+                } else {
+                    intersect.z = 0;
+                }
+                t = (intersect.z - p0.z) / (p1.z - p0.z);
+                intersect.x = p0.x + t * (p1.x - p0.x);
+                intersect.y = p0.y + t * (p1.y - p0.y);
+            }
 
-        // Create a new line for clipped line
-        line = {
-            pt0: Vector3(p0.x, p0.y, p0.z),
-            pt1: Vector3(p1.x, p1.y, p1.z)
-        };
-        result = clipLineParallel(line);
+            // Replace selected endpoint with this intersection point
+            if (selectedEndpoint == p0) {
+                p0 = intersect;
+                out0 = outcodeParallel(p0);
+            } else {
+                p1 = intersect;
+                out1 = outcodeParallel(p1);
+            }
+
+            // Create a new line for clipped line
+            result = {
+                pt0: Vector3(p0.x, p0.y, p0.z),
+                pt1: Vector3(p1.x, p1.y, p1.z)
+            };
+        }
     }
     return result;
 }
@@ -369,7 +371,7 @@ function clipLinePerspective(line, z_min) {
             intersect.x = (1 - t) * p0.x + t * p1.x;
             intersect.y = (1 - t) * p0.y + t * p1.y;
             intersect.z = (1 - t) * p0.z + t * p1.z;
-            
+
             // set my selected point, p0, to the intersection point
             p0 = intersect;
 
@@ -396,8 +398,7 @@ function clipLinePerspective(line, z_min) {
 
 // Called when user presses a key on the keyboard down 
 // add things
-function onKeyDown(event) 
-{
+function onKeyDown(event) {
     let n_axis = scene.view.prp.subtract(scene.view.srp);
     let u_axis = scene.view.vup.cross(n_axis);
     n_axis.normalize();
