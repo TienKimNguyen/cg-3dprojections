@@ -25,7 +25,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel',
+            type: 'perspective',
             prp: Vector3(44, 20, -20),
             srp: Vector3(20, 20, -45),
             vup: Vector3(0, 1, 0),
@@ -57,6 +57,13 @@ function init() {
                 ],
                 matrix: new Matrix(4, 4)
             }, 
+            {
+                type: "cube",
+                center: [0, 20, -30],
+                width: 8,
+                height: 8,
+                depth: 8
+            },
         ]
     };
 
@@ -104,16 +111,29 @@ function drawScene() {
     let models = scene.models; // array of models
     for (let i = 0; i < models.length; i++) { // for each model
         let model = models[i]; // 1 model
-        let vertices = []; // list of vertices after 3D transformation
-        let clippedLines = [];
+        let modelVertices = []; // array of model's vertices
+        let modelEdges = []; // array of model's edges
 
-        for (let j = 0; j < model.vertices.length; j++) {
-            let vertex = Matrix.multiply([transform, model.vertices[j]]);
+        // Depend on model's type, assign arrays of vertices and edges above
+        if (model.type == 'generic') {
+            modelVertices = model.vertices;
+            modelEdges = model.edges;
+        } else if (model.type = "cube"){
+            let cube = createCube(model.center, model.width, model.height, model.depth);
+            modelVertices = cube.vertices;
+            modelEdges = cube.edges;
+        }
+
+        let vertices = []; // list of vertices after 3D transformation
+        let clippedLines = []; // array of edges after clipping
+
+        for (let j = 0; j < modelVertices.length; j++) {
+            let vertex = Matrix.multiply([transform, modelVertices[j]]);
             vertices.push(vertex);
         }
 
-        for (let j = 0; j < model.edges.length; j++) { // for each edge array
-            let edges = model.edges[j]; // edge array
+        for (let j = 0; j < modelEdges.length; j++) { // for each edge array
+            let edges = modelEdges[j]; // edge array
             for (let k = 0; k < edges.length - 1; k++) { // for each edge in array
                 let pt0 = vertices[edges[k]]; // endpoint 1 - Vector 4
                 let pt1 = vertices[edges[k + 1]]; // endpoint 2 - Vector 4
@@ -172,6 +192,39 @@ function drawScene() {
             drawLine(pt0Array[i].x, pt0Array[i].y, pt1Array[i].x, pt1Array[i].y);
         }
     }
+}
+
+// CUBE MODEL:
+function createCube (center, width, height, depth) {
+    // Width = x , height = y, depth = z
+    let x = center[0];
+    let y = center[1];
+    let z = center[2];
+
+    // Center is at (w/2, h/2, d/2)
+
+    let cube = {
+        vertices : [
+            Vector4(x - width/2, y - height/2, z + depth/2, 1), // low left front
+            Vector4(x - width/2, y + height/2, z + depth/2, 1), // high left front
+            Vector4(x + width/2, y + height/2, z + depth/2, 1), // high right front
+            Vector4(x + width/2, y - height/2, z + depth/2, 1), // low right front
+    
+            Vector4(x - width/2, y - height/2, z - depth/2, 1), // low left back
+            Vector4(x - width/2, y + height/2, z - depth/2, 1), // high left back
+            Vector4(x + width/2, y + height/2, z - depth/2, 1), // high right back
+            Vector4(x + width/2, y - height/2, z - depth/2, 1), // low right back
+        ],
+        edges : [
+            [0, 1, 2, 3, 0],
+            [4, 5, 6, 7, 4],
+            [0, 4],
+            [1, 5],
+            [2, 6],
+            [3, 7],
+        ],
+    }
+    return cube;
 }
 
 // Get outcode for vertex (parallel view volume)
