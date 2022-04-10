@@ -363,7 +363,7 @@ function clipLinePerspective(line, z_min) {
                 t = (-p0.z - 1) / (deltaz);
             }
             else {
-                t = (-p0.z + z_min) / (deltaz);
+                t = (p0.z - z_min) / (-deltaz);
             }
             // calculate intersection point based on t calculated above
             intersect.x = (1 - t) * p0.x + t * p1.x;
