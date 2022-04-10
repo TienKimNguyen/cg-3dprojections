@@ -56,7 +56,7 @@ function init() {
                     [4, 9]
                 ],
                 matrix: new Matrix(4, 4)
-            }, 
+            },
             {
                 type: "cube",
                 center: [0, 20, -30],
@@ -64,6 +64,17 @@ function init() {
                 height: 8,
                 depth: 8
             },
+            {
+                type: "cylinder",
+                center: [0, 10, -20],
+                radius: 5,
+                height: 10,
+                sides: 12,
+                animation: {
+                    axis: "y",
+                    rps: 0.5
+                }
+            }
         ]
     };
 
@@ -115,14 +126,21 @@ function drawScene() {
         let modelEdges = []; // array of model's edges
 
         // Depend on model's type, assign arrays of vertices and edges above
-        if (model.type == 'generic') {
+        if (model.type == "generic") {
             modelVertices = model.vertices;
             modelEdges = model.edges;
-        } else if (model.type = "cube"){
+        } else if (model.type == "cube") {
             let cube = createCube(model.center, model.width, model.height, model.depth);
             modelVertices = cube.vertices;
             modelEdges = cube.edges;
+        } else if (model.type == "cylinder") {
+            let cylinder = createCylinder(model.center, model.radius, model.height, model.sides);
+            modelVertices = cylinder.vertices;
+            modelEdges = cylinder.edges;
         }
+
+        //console.log(modelVertices);
+        //console.log(modelEdges)
 
         let vertices = []; // list of vertices after 3D transformation
         let clippedLines = []; // array of edges after clipping
@@ -195,7 +213,7 @@ function drawScene() {
 }
 
 // CUBE MODEL:
-function createCube (center, width, height, depth) {
+function createCube(center, width, height, depth) {
     // Width = x , height = y, depth = z
     let x = center[0];
     let y = center[1];
@@ -204,18 +222,18 @@ function createCube (center, width, height, depth) {
     // Center is at (w/2, h/2, d/2)
 
     let cube = {
-        vertices : [
-            Vector4(x - width/2, y - height/2, z + depth/2, 1), // low left front
-            Vector4(x - width/2, y + height/2, z + depth/2, 1), // high left front
-            Vector4(x + width/2, y + height/2, z + depth/2, 1), // high right front
-            Vector4(x + width/2, y - height/2, z + depth/2, 1), // low right front
-    
-            Vector4(x - width/2, y - height/2, z - depth/2, 1), // low left back
-            Vector4(x - width/2, y + height/2, z - depth/2, 1), // high left back
-            Vector4(x + width/2, y + height/2, z - depth/2, 1), // high right back
-            Vector4(x + width/2, y - height/2, z - depth/2, 1), // low right back
+        vertices: [
+            Vector4(x - width / 2, y - height / 2, z + depth / 2, 1), // low left front
+            Vector4(x - width / 2, y + height / 2, z + depth / 2, 1), // high left front
+            Vector4(x + width / 2, y + height / 2, z + depth / 2, 1), // high right front
+            Vector4(x + width / 2, y - height / 2, z + depth / 2, 1), // low right front
+
+            Vector4(x - width / 2, y - height / 2, z - depth / 2, 1), // low left back
+            Vector4(x - width / 2, y + height / 2, z - depth / 2, 1), // high left back
+            Vector4(x + width / 2, y + height / 2, z - depth / 2, 1), // high right back
+            Vector4(x + width / 2, y - height / 2, z - depth / 2, 1), // low right back
         ],
-        edges : [
+        edges: [
             [0, 1, 2, 3, 0],
             [4, 5, 6, 7, 4],
             [0, 4],
@@ -225,6 +243,45 @@ function createCube (center, width, height, depth) {
         ],
     }
     return cube;
+}
+
+// CREATE CYLINDER
+function createCylinder(center, radius, height, sides) {
+    let vertices = [];
+    let edges = [];
+    let degree = 360 / sides;
+
+    // Find coordinates of points
+    for (let i = 0; i < sides; i++) {
+        let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
+        let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
+        let y_top = center[1] + height/2;
+        let y_bottom = center[1] - height/2;
+
+        vertices.push(Vector4(x, y_top, z, 1));
+        vertices.push(Vector4(x, y_bottom, z, 1));
+    }
+
+    let arr1 = [];
+    let arr2 = [];
+    for (let i = 0; i < sides; i++) {
+        arr1[i] = 2*i;
+        arr2[i] = 2*i + 1;
+    }
+    arr1.push(0);
+    arr2.push(1);
+    edges.push(arr1);
+    edges.push(arr2);
+
+    for (let i = 0; i < sides; i++) {
+        edges.push([i * 2, i * 2 + 1]);
+    }
+
+    let cylinder = {
+        vertices: vertices,
+        edges: edges,
+    }
+    return cylinder;
 }
 
 // Get outcode for vertex (parallel view volume)
