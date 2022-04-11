@@ -25,7 +25,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective', 
+            type: 'parallel', 
             prp: Vector3(44, 20, -20),
             srp: Vector3(20, 20, -45),
             vup: Vector3(0, 1, 0),
@@ -445,10 +445,10 @@ function clipLineParallel(line) {
 
     let trivial = false;
     while (!trivial) {
-        if (out0 | out1 == 0) {
+        if ((out0 | out1) == 0) {
             result = line;
             trivial = true;
-        } else if (out0 & out1 != 0) {
+        } else if ((out0 & out1) != 0) {
             trivial = true;
         } else {
             // Choose an endpoint outside of the view volume
@@ -464,8 +464,8 @@ function clipLineParallel(line) {
 
             // Calculate intersection point between line and corresponding edge
             let intersect = new Vector3(0, 0, 0);
-            if (selected & LEFT == LEFT || selected & RIGHT == RIGHT) {
-                if (selected & LEFT == LEFT) {
+            if (((selected & LEFT) == LEFT) || ((selected & RIGHT) == RIGHT)) {
+                if ((selected & LEFT) == LEFT) {
                     intersect.x = -1;
                 } else {
                     intersect.x = 1;
@@ -473,8 +473,8 @@ function clipLineParallel(line) {
                 t = (intersect.x - p0.x) / (p1.x - p0.x);
                 intersect.y = p0.y + t * (p1.y - p0.y);
                 intersect.z = p0.z + t * (p1.z - p0.z);
-            } else if (selected & BOTTOM == BOTTOM || selected & TOP == TOP) {
-                if (selected & BOTTOM == BOTTOM) {
+            } else if (((selected & BOTTOM) == BOTTOM) || ((selected & TOP) == TOP)) {
+                if ((selected & BOTTOM) == BOTTOM) {
                     intersect.y = -1;
                 } else {
                     intersect.y = 1;
@@ -482,8 +482,8 @@ function clipLineParallel(line) {
                 t = (intersect.y - p0.y) / (p1.y - p0.y);
                 intersect.x = p0.x + t * (p1.x - p0.x);
                 intersect.z = p0.z + t * (p1.z - p0.z);
-            } else if (selected & FAR == FAR || selected & NEAR == NEAR) {
-                if (selected & FAR == FAR) {
+            } else if (((selected & FAR) == FAR) || ((selected & NEAR) == NEAR)) {
+                if ((selected & FAR) == FAR) {
                     intersect.z = -1;
                 } else {
                     intersect.z = 0;
