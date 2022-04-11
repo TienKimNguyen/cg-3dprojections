@@ -25,7 +25,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective',
+            type: 'perspective', 
             prp: Vector3(44, 20, -20),
             srp: Vector3(20, 20, -45),
             vup: Vector3(0, 1, 0),
@@ -164,7 +164,7 @@ function drawScene() {
                 if (projectionType == "parallel") {
                     clippedEdge = clipLineParallel(edge);
                 } else {
-                    let z_min = -scene.view.clip[5] / scene.view.clip[4];
+                    let z_min = -scene.view.clip[4] / scene.view.clip[5];
                     clippedEdge = clipLinePerspective(edge, z_min);
                 }
                 clippedLines.push(clippedEdge); // add clipped edge to clippedLines array
@@ -448,9 +448,9 @@ function clipLinePerspective(line, z_min) {
         else {
             // choose point on outside, I always choose p0. If p0 is inside, switch with p1
             if (out0 == 0) {
-                let temp = p0;
-                p0 = p1;
-                p1 = temp;
+                let temp = Vector3(p0.x, p0.y, p0.z);
+                p0 = Vector3(p1.x, p1.y, p1.z);
+                p1 = Vector3(temp.x, temp.y, temp.z);
                 out0 = outcodePerspective(p0, z_min);
                 out1 = outcodePerspective(p1, z_min);
             }
@@ -522,13 +522,15 @@ function onKeyDown(event) {
             break;
         case 65: // A key
             console.log("A");
-            scene.view.prp = scene.view.prp.add(u_axis);
-            scene.view.srp = scene.view.srp.add(u_axis);
+            // PRP and SRP move left (model appears to move right)
+            scene.view.prp = scene.view.prp.subtract(u_axis);
+            scene.view.srp = scene.view.srp.subtract(u_axis);
             break;
         case 68: // D key
             console.log("D");
-            scene.view.prp = scene.view.prp.subtract(u_axis);
-            scene.view.srp = scene.view.srp.subtract(u_axis);
+            // PRP and SRP move right (model appears to move left)
+            scene.view.prp = scene.view.prp.add(u_axis);
+            scene.view.srp = scene.view.srp.add(u_axis);
             break;
         case 83: // S key
             console.log("S");
