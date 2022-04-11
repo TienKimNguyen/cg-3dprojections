@@ -541,10 +541,10 @@ function clipLinePerspective(line, z_min) {
     let z = 0;
     // Loop until we get trivial results - first loop will always run
     while (!trivial) {
-        if (out0 | out1 == 0) {
+        if ((out0 | out1) == 0) {
             trivial = true;
         }
-        else if (out0 & out1 != 0) {
+        else if ((out0 & out1) != 0) {
             trivial = true;
             result = null;
         }
@@ -562,19 +562,19 @@ function clipLinePerspective(line, z_min) {
             deltaz = p1.z - p0.z;
             let intersect = Vector3(x, y, z);
             // find first bit set to 1, I think they should waterfall down in this order, no extra work needed?? - wrong
-            if (out0 & LEFT == LEFT) {
+            if ((out0 & LEFT) == LEFT) {
                 t = (-p0.x + p0.z) / (deltax - deltaz);
             }
-            else if (out0 & RIGHT == RIGHT) {
+            else if ((out0 & RIGHT) == RIGHT) {
                 t = (p0.x + p0.z) / (-deltax - deltaz);
             }
-            else if (out0 & BOTTOM == BOTTOM) {
+            else if ((out0 & BOTTOM) == BOTTOM) {
                 t = (-p0.y + p0.z) / (deltay - deltaz);
             }
-            else if (out0 & TOP == TOP) {
+            else if ((out0 & TOP) == TOP) {
                 t = (p0.y + p0.z) / (-deltay - deltaz);
             }
-            else if (out0 & FAR == FAR) {
+            else if ((out0 & FAR) == FAR) {
                 t = (-p0.z - 1) / (deltaz);
             }
             else {
