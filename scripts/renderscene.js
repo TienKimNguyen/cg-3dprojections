@@ -85,6 +85,17 @@ function init() {
                     axis: "y",
                     rps: 0.5
                 }
+            },
+            {
+                type: "sphere",
+                center: [10, 40, -50],
+                radius: 10,
+                slices: 10,
+                stacks: 10,
+                animation: {
+                    axis: "y",
+                    rps: 0.5
+                }
             }
         ]
     };
@@ -152,6 +163,10 @@ function drawScene() {
             let cone = createCone(model.center, model.radius, model.height, model.sides);
             modelVertices = cone.vertices;
             modelEdges = cone.edges;
+        } else if (model.type == "sphere") {
+            let sphere = createSphere(model.center, model.radius, model.slices, model.stacks);
+            modelVertices = sphere.vertices;
+            modelEdges = sphere.edges;
         }
         
 
@@ -341,37 +356,34 @@ function createCone(center, radius, height, sides) {
 function createSphere(center, radius, slices, stacks) {
     let vertices = [];
     let edges = [];
-    let degreeSlice = 360 / slices;
-    let degreeStack = 360 / stacks;
+    let degreeSlice = 2 * Math.PI / slices;
+    let degreeStack = Math.PI / stacks;
 
     // Find coordinates of points
-    for (let r = 0; r < slices; r++) {
-        for (let c = 0; c < stacks; c++){
-            let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
-            let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
-            let y = center[1];
-
+    for (let r = 0; r < stacks + 1; r++) {
+        let phi = r * degreeStack;
+        for (let c = 0; c < slices; c++) {
+            let theta = c * degreeSlice;
+            let x = center[0] + radius * Math.cos(theta) * Math.sin(phi);
+            let z = center[2] + radius * Math.sin(phi) * Math.sin(theta);
+            let y = center[1] + radius * Math.cos(phi);
             vertices.push(Vector4(x, y, z, 1));
+            console.log(Vector4(x, y, z, 1));
         }
     }
 
-    vertices.push(Vector4(center[0], center[1] + height, center[2], 1));
-
-    let arr1 = [];
-
-    for (let i = 0; i < sides; i++) {
-        arr1.push(i);
-        edges.push([i,vertices.length - 1]);
+    for (let r = 0; r < stacks; r++) {
+        for (let c = 0; c < slices; c++) {
+            edges.push([slices*r + c, slices*(r+1) + c]);
+            edges.push([slices*r + c, slices*r + c + 1]);
+        }
     }
-    
-    arr1.push(0);
-    edges.push(arr1);
 
-    let cone = {
+    let sphere = {
         vertices: vertices,
         edges: edges,
     }
-    return cone;
+    return sphere;
 }
 
 
