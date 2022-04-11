@@ -74,6 +74,17 @@ function init() {
                     axis: "y",
                     rps: 0.5
                 }
+            },
+            {
+                type: "cone",
+                center: [0, 30, -20],
+                radius: 5,
+                height: 10,
+                sides: 12,
+                animation: {
+                    axis: "y",
+                    rps: 0.5
+                }
             }
         ]
     };
@@ -137,7 +148,12 @@ function drawScene() {
             let cylinder = createCylinder(model.center, model.radius, model.height, model.sides);
             modelVertices = cylinder.vertices;
             modelEdges = cylinder.edges;
+        } else if (model.type == "cone") {
+            let cone = createCone(model.center, model.radius, model.height, model.sides);
+            modelVertices = cone.vertices;
+            modelEdges = cone.edges;
         }
+        
 
         //console.log(modelVertices);
         //console.log(modelEdges)
@@ -285,6 +301,79 @@ function createCylinder(center, radius, height, sides) {
     }
     return cylinder;
 }
+
+// CREATE CONE
+function createCone(center, radius, height, sides) {
+    let vertices = [];
+    let edges = [];
+    let degree = 360 / sides;
+
+    // Find coordinates of points
+    for (let i = 0; i < sides; i++) {
+        let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
+        let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
+        let y = center[1];
+
+        vertices.push(Vector4(x, y, z, 1));
+    }
+
+    vertices.push(Vector4(center[0], center[1] + height, center[2], 1));
+
+    let arr1 = [];
+
+    for (let i = 0; i < sides; i++) {
+        arr1.push(i);
+        edges.push([i,vertices.length - 1]);
+    }
+    
+    arr1.push(0);
+    edges.push(arr1);
+
+    let cone = {
+        vertices: vertices,
+        edges: edges,
+    }
+    return cone;
+}
+
+// CREATE SPHERE
+// I am deciding that slices are vertical slices and stacks are horizontal stacks
+function createSphere(center, radius, slices, stacks) {
+    let vertices = [];
+    let edges = [];
+    let degreeSlice = 360 / slices;
+    let degreeStack = 360 / stacks;
+
+    // Find coordinates of points
+    for (let r = 0; r < slices; r++) {
+        for (let c = 0; c < stacks; c++){
+            let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
+            let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
+            let y = center[1];
+
+            vertices.push(Vector4(x, y, z, 1));
+        }
+    }
+
+    vertices.push(Vector4(center[0], center[1] + height, center[2], 1));
+
+    let arr1 = [];
+
+    for (let i = 0; i < sides; i++) {
+        arr1.push(i);
+        edges.push([i,vertices.length - 1]);
+    }
+    
+    arr1.push(0);
+    edges.push(arr1);
+
+    let cone = {
+        vertices: vertices,
+        edges: edges,
+    }
+    return cone;
+}
+
 
 // Get outcode for vertex (parallel view volume)
 function outcodeParallel(vertex) {
