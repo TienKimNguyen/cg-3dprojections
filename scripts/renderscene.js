@@ -368,7 +368,6 @@ function createSphere(center, radius, slices, stacks) {
             let z = center[2] + radius * Math.sin(phi) * Math.sin(theta);
             let y = center[1] + radius * Math.cos(phi);
             vertices.push(Vector4(x, y, z, 1));
-            console.log(Vector4(x, y, z, 1));
         }
     }
 
