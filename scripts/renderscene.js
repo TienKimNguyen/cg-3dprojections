@@ -521,6 +521,7 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+            // this is probably all wrong
             mat4x4RotateZ(rotate, 10);
             let newSRP = Matrix.multiply([rotate, srpHomogenous]);
             scene.view.srp.x = newSRP[0];
