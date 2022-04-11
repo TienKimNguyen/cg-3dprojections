@@ -167,7 +167,9 @@ function drawScene() {
                     let z_min = -scene.view.clip[4] / scene.view.clip[5];
                     clippedEdge = clipLinePerspective(edge, z_min);
                 }
-                clippedLines.push(clippedEdge); // add clipped edge to clippedLines array
+                if(clippedEdge != null) {
+                    clippedLines.push(clippedEdge); // add clipped edge to clippedLines array
+                }
             }
         }
 
@@ -513,12 +515,22 @@ function onKeyDown(event) {
     let u_axis = scene.view.vup.cross(n_axis);
     n_axis.normalize();
     u_axis.normalize();
+    let srpHomogenous = new Matrix(4,1);
+    srpHomogenous.values = [[scene.view.srp.x], [scene.view.srp.y], [scene.view.srp.z], [1]];
+    let rotate = new Matrix(4, 4);
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
+            mat4x4RotateZ(rotate, 10);
+            let newSRP = Matrix.multiply([rotate, srpHomogenous]);
+            scene.view.srp.x = newSRP[0];
+            scene.view.srp.y = newSRP[1];
+            scene.view.srp.z = newSRP[2];
             break;
         case 39: // RIGHT Arrow
             console.log("right");
+            mat4x4RotateY(rotate, 15);
+
             break;
         case 65: // A key
             console.log("A");
