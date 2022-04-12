@@ -25,7 +25,7 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'perspective', 
+            type: 'parallel', 
             prp: Vector3(44, 20, -20),
             srp: Vector3(20, 20, -45),
             vup: Vector3(0, 1, 0),
@@ -438,19 +438,22 @@ function outcodePerspective(vertex, z_min) {
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
 // fix
 function clipLineParallel(line) {
-    let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
     let p1 = Vector3(line.pt1.x, line.pt1.y, line.pt1.z);
+    let result = {
+        pt0: Vector3(p0.x, p0.y, p0.z),
+        pt1: Vector3(p1.x, p1.y, p1.z)
+    }
     let out0 = outcodeParallel(p0);
     let out1 = outcodeParallel(p1);
 
     let trivial = false;
     while (!trivial) {
         if ((out0 | out1) == 0) {
-            result = line;
             trivial = true;
         } else if ((out0 & out1) != 0) {
             trivial = true;
+            result = null;
         } else {
             // Choose an endpoint outside of the view volume
             let selected = 0;
