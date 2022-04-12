@@ -615,23 +615,26 @@ function onKeyDown(event) {
     let u_axis = scene.view.vup.cross(n_axis);
     n_axis.normalize();
     u_axis.normalize();
-    let srpHomogenous = new Matrix(4,1);
-    srpHomogenous.values = [[scene.view.srp.x], [scene.view.srp.y], [scene.view.srp.z], [1]];
-    let rotate = new Matrix(4, 4);
+    let v_axis = n_axis.cross(u_axis);
+    let rotateV = new Matrix(4,4);
+    let newSRP = Vector4(0,0,0,0);
+    let srpHomogenous = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
-            // this is probably all wrong
-            mat4x4RotateZ(rotate, 10);
-            let newSRP = Matrix.multiply([rotate, srpHomogenous]);
-            scene.view.srp.x = newSRP[0];
-            scene.view.srp.y = newSRP[1];
-            scene.view.srp.z = newSRP[2];
+            mat4x4RotateGivenAxis(rotateV, v_axis, 5);
+            newSRP = Matrix.multiply([rotateV, srpHomogenous]);
+            scene.view.srp.x = newSRP.x;
+            scene.view.srp.y = newSRP.y;
+            scene.view.srp.z = newSRP.z;
             break;
         case 39: // RIGHT Arrow
             console.log("right");
-            mat4x4RotateY(rotate, 15);
-
+            mat4x4RotateGivenAxis(rotateV, v_axis, -5);
+            newSRP = Matrix.multiply([rotateV, srpHomogenous]);
+            scene.view.srp.x = newSRP.x;
+            scene.view.srp.y = newSRP.y;
+            scene.view.srp.z = newSRP.z;
             break;
         case 65: // A key
             console.log("A");

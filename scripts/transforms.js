@@ -181,6 +181,20 @@ function mat4x4ShearXY(mat4x4, shx, shy) {
                      [0, 0, 0, 1]];
 }
 
+// set values of existing 4x4 matrix to the rotate about z-axis matrix
+function mat4x4RotateGivenAxis(mat4x4, axis, theta) {
+    let degree = (Math.PI / 180) * theta;
+    let cos = Math.cos(degree);
+    let sin = Math.sin(degree);
+    let x = axis.x;
+    let y = axis.y;
+    let z = axis.z;
+    mat4x4.values = [[cos + x^2*(1-cos), x*y*(1-cos) - z*sin, x*z*(1 - cos) + y*sin, 0],
+                     [y*x*(1 - cos) + z*sin, cos + y^2*(1 - cos), y*z*(1 - cos) - x*sin, 0],
+                     [z*x*(1 - cos) - y*sin, z*y*(1 - cos) + x*sin, cos + z^2*(1 - cos), 0],
+                     [0, 0, 0, 1]];
+}
+
 // create a new 3-component vector with values x,y,z
 function Vector3(x, y, z) {
     let vec3 = new Vector(3);
