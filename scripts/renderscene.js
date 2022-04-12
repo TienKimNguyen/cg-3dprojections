@@ -634,7 +634,7 @@ function onKeyDown(event) {
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
-            mat4x4RotateGivenAxis(rotateV, v_axis, -5);
+            mat4x4RotateGivenAxis(rotateV, v_axis, 5);
             newSRP = Matrix.multiply([back, rotateV, toOrigin, srpHomogenous]);
             console.log(newSRP);
             scene.view.srp.x = newSRP.x;
@@ -643,7 +643,7 @@ function onKeyDown(event) {
             break;
         case 39: // RIGHT Arrow
             console.log("right");
-            mat4x4RotateGivenAxis(rotateV, v_axis, 5);
+            mat4x4RotateGivenAxis(rotateV, v_axis, -5);
             // translate PRP to orgin, multiply FIRST
             newSRP = Matrix.multiply([back, rotateV, toOrigin, srpHomogenous]);
             scene.view.srp.x = newSRP.x;
