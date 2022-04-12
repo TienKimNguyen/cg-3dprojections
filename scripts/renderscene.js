@@ -26,10 +26,10 @@ function init() {
     scene = {
         view: {
             type: 'perspective', 
-            prp: Vector3(44, 20, -21),
-            srp: Vector3(20, 21, -45),
-            vup: Vector3(0, 1, 0),
-            clip: [-15, 5, -10, 10, 12, 100]
+            prp: Vector3(0, 10, -5),
+            srp: Vector3(20, 15, -40),
+            vup: Vector3(1, 1, 0),
+            clip: [-12, 6, -12, 6, 10, 100]
         },
         models: [
             {
@@ -375,7 +375,12 @@ function createSphere(center, radius, slices, stacks) {
     for (let r = 0; r < stacks; r++) {
         for (let c = 0; c < slices; c++) {
             edges.push([slices*r + c, slices*(r+1) + c]);
-            edges.push([slices*r + c, slices*r + c + 1]);
+            if(c != slices - 1) {
+                edges.push([slices*r + c, slices*r + c + 1]);
+            }
+            else {
+                edges.push([slices*r + c, slices*r]);
+            }
         }
     }
 
