@@ -59,14 +59,14 @@ function init() {
             },
             {
                 type: "cube",
-                center: [0, 20, -30],
+                center: Vector3(0, 20, -30),
                 width: 8,
                 height: 8,
                 depth: 8
             },
             {
                 type: "cylinder",
-                center: [0, 10, -20],
+                center: Vector3(0, 10, -20),
                 radius: 5,
                 height: 10,
                 sides: 12,
@@ -77,7 +77,7 @@ function init() {
             },
             {
                 type: "cone",
-                center: [0, 30, -20],
+                center: Vector3(0, 30, -20),
                 radius: 5,
                 height: 10,
                 sides: 12,
@@ -88,7 +88,7 @@ function init() {
             },
             {
                 type: "sphere",
-                center: [10, 40, -50],
+                center: Vector3(10, 40, -50),
                 radius: 10,
                 slices: 10,
                 stacks: 10,
@@ -126,6 +126,7 @@ function animate(timestamp) {
 
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
+    ctx.clearRect(0, 0, view.width, view.height);
     console.log(scene);
     let projectionType = scene.view.type;
     let transform = new Matrix(4, 4); // N_par or N_per
@@ -248,9 +249,9 @@ function drawScene() {
 // CUBE MODEL:
 function createCube(center, width, height, depth) {
     // Width = x , height = y, depth = z
-    let x = center[0];
-    let y = center[1];
-    let z = center[2];
+    let x = center.x;
+    let y = center.y;
+    let z = center.z;
 
     // Center is at (w/2, h/2, d/2)
 
@@ -286,10 +287,10 @@ function createCylinder(center, radius, height, sides) {
 
     // Find coordinates of points
     for (let i = 0; i < sides; i++) {
-        let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
-        let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
-        let y_top = center[1] + height/2;
-        let y_bottom = center[1] - height/2;
+        let x = center.x + Math.cos((Math.PI / 180) * i * degree) * radius;
+        let z = center.z + Math.sin((Math.PI / 180) * i * degree) * radius;
+        let y_top = center.y + height/2;
+        let y_bottom = center.y - height/2;
 
         vertices.push(Vector4(x, y_top, z, 1));
         vertices.push(Vector4(x, y_bottom, z, 1));
@@ -325,14 +326,14 @@ function createCone(center, radius, height, sides) {
 
     // Find coordinates of points
     for (let i = 0; i < sides; i++) {
-        let x = center[0] + Math.cos((Math.PI / 180) * i * degree) * radius;
-        let z = center[2] + Math.sin((Math.PI / 180) * i * degree) * radius;
-        let y = center[1];
+        let x = center.x + Math.cos((Math.PI / 180) * i * degree) * radius;
+        let z = center.z + Math.sin((Math.PI / 180) * i * degree) * radius;
+        let y = center.y;
 
         vertices.push(Vector4(x, y, z, 1));
     }
 
-    vertices.push(Vector4(center[0], center[1] + height, center[2], 1));
+    vertices.push(Vector4(center.x, center.y + height, center.z, 1));
 
     let arr1 = [];
 
@@ -364,9 +365,9 @@ function createSphere(center, radius, slices, stacks) {
         let phi = r * degreeStack;
         for (let c = 0; c < slices; c++) {
             let theta = c * degreeSlice;
-            let x = center[0] + radius * Math.cos(theta) * Math.sin(phi);
-            let z = center[2] + radius * Math.sin(phi) * Math.sin(theta);
-            let y = center[1] + radius * Math.cos(phi);
+            let x = center.x + radius * Math.cos(theta) * Math.sin(phi);
+            let z = center.z + radius * Math.sin(phi) * Math.sin(theta);
+            let y = center.y + radius * Math.cos(phi);
             vertices.push(Vector4(x, y, z, 1));
         }
     }
@@ -435,6 +436,7 @@ function outcodePerspective(vertex, z_min) {
 }
 
 // Clip line - should either return a new line (with two endpoints inside view volume) or null (if line is completely outside view volume)
+// fix
 function clipLineParallel(line) {
     let result = null;
     let p0 = Vector3(line.pt0.x, line.pt0.y, line.pt0.z);
@@ -609,13 +611,17 @@ function clipLinePerspective(line, z_min) {
 }
 
 // Called when user presses a key on the keyboard down 
-// add things
+// left and right need to be updated more
 function onKeyDown(event) {
     let n_axis = scene.view.prp.subtract(scene.view.srp);
     let u_axis = scene.view.vup.cross(n_axis);
     n_axis.normalize();
     u_axis.normalize();
     let v_axis = n_axis.cross(u_axis);
+    let translatePRP = new Matrix(4,4);
+    mat4x4Translate(translatePRP, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);
+    let translatePRP2 = new Matrix(4,4);
+    mat4x4Translate(translatePRP2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
     let rotateV = new Matrix(4,4);
     let newSRP = Vector4(0,0,0,0);
     let srpHomogenous = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);
@@ -623,7 +629,7 @@ function onKeyDown(event) {
         case 37: // LEFT Arrow
             console.log("left");
             mat4x4RotateGivenAxis(rotateV, v_axis, 5);
-            newSRP = Matrix.multiply([rotateV, srpHomogenous]);
+            newSRP = Matrix.multiply([translatePRP2, rotateV, translatePRP, srpHomogenous]);
             scene.view.srp.x = newSRP.x;
             scene.view.srp.y = newSRP.y;
             scene.view.srp.z = newSRP.z;
@@ -631,7 +637,8 @@ function onKeyDown(event) {
         case 39: // RIGHT Arrow
             console.log("right");
             mat4x4RotateGivenAxis(rotateV, v_axis, -5);
-            newSRP = Matrix.multiply([rotateV, srpHomogenous]);
+            // translate PRP to orgin, multiply FIRST
+            newSRP = Matrix.multiply([translatePRP2, rotateV, translatePRP, srpHomogenous]);
             scene.view.srp.x = newSRP.x;
             scene.view.srp.y = newSRP.y;
             scene.view.srp.z = newSRP.z;
@@ -659,8 +666,6 @@ function onKeyDown(event) {
             scene.view.srp = scene.view.srp.subtract(n_axis);
             break;
     }
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, 800, 600);
     drawScene();
 }
 
@@ -698,6 +703,7 @@ function loadNewScene() {
             }
             scene.models[i].matrix = new Matrix(4, 4);
         }
+        drawScene();
     };
     reader.readAsText(scene_file.files[0], 'UTF-8');
 }
