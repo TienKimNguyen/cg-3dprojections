@@ -2,6 +2,7 @@ let view;
 let ctx;
 let scene;
 let start_time;
+let prev_time;
 
 const LEFT = 32; // binary 100000
 const RIGHT = 16; // binary 010000
@@ -55,14 +56,23 @@ function init() {
                     [3, 8],
                     [4, 9]
                 ],
-                matrix: new Matrix(4, 4)
+                matrix: new Matrix(4, 4),
+                animation: {
+                    axis: "z",
+                    rps: 0.1
+                }
             },
             {
                 type: "cube",
                 center: Vector3(0, 20, -30),
                 width: 8,
                 height: 8,
-                depth: 8
+                depth: 8,
+                matrix: new Matrix(4, 4),
+                animation: {
+                    axis: "y",
+                    rps: 0.5
+                }
             },
             {
                 type: "cylinder",
@@ -70,8 +80,9 @@ function init() {
                 radius: 5,
                 height: 10,
                 sides: 12,
+                matrix: new Matrix(4, 4),
                 animation: {
-                    axis: "y",
+                    axis: "x",
                     rps: 0.5
                 }
             },
@@ -81,6 +92,7 @@ function init() {
                 radius: 5,
                 height: 10,
                 sides: 12,
+                matrix: new Matrix(4, 4),
                 animation: {
                     axis: "y",
                     rps: 0.5
@@ -92,6 +104,7 @@ function init() {
                 radius: 10,
                 slices: 10,
                 stacks: 10,
+                matrix: new Matrix(4, 4),
                 animation: {
                     axis: "y",
                     rps: 0.5
@@ -104,7 +117,8 @@ function init() {
     document.addEventListener('keydown', onKeyDown, false);
 
     // start animation loop
-    start_time = performance.now(); // current timestamp in milliseconds
+    start_time = performance.now();
+    prev_time = start_time; // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
 }
 
@@ -114,14 +128,96 @@ function animate(timestamp) {
     let time = timestamp - start_time;
 
     // step 2: transform models based on time
-    // TODO: implement this!
+    
+
+    for(let m = 0; m < scene.models.length; m++)
+    {
+        let shape = scene.models[m];
+        let modelType = shape.type;
+        let center = Vector4(0, 0, 0, 0);
+        let rotationAxis = 'x';
+        let rps = 0;
+        let myVertices = [];
+        let transform;
+        
+        if(modelType == 'generic') {
+            let x = 0;
+            let y = 0; 
+            let z = 0;
+            for(let i = 0; i < shape.vertices.length; i++) {
+                x += shape.vertices[i].x/shape.vertices.length;
+                y += shape.vertices[i].y/shape.vertices.length;
+                z += shape.vertices[i].z/shape.vertices.length;
+            }
+            center = Vector4(x, y, z, 1);
+            rotationAxis = shape.animation.axis;
+            rps = shape.animation.rps;
+            myVertices = shape.vertices;
+            transform = shape.matrix;
+        }
+        else if(modelType == 'cube') {
+            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
+            rotationAxis = shape.animation.axis;
+            rps = shape.animation.rps;
+            let cube = createCube(shape.center, shape.width, shape.height, shape.depth);
+            myVertices = cube.vertices;
+            transform = shape.matrix;
+        }
+        else if(modelType == 'cone') {
+            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
+            rotationAxis = shape.animation.axis;
+            rps = shape.animation.rps;
+            let cone = createCone(shape.center, shape.width, shape.height, shape.depth);
+            myVertices = cone.vertices;
+            transform = shape.matrix;
+        }
+        else if(modelType == 'cylinder') {
+            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
+            rotationAxis = shape.animation.axis;
+            rps = shape.animation.rps;
+            let cylinder = createCylinder(shape.center, shape.width, shape.height, shape.depth);
+            myVertices = cylinder.vertices;
+            transform = shape.matrix;
+        }
+        else if(modelType == 'sphere') {
+            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
+            rotationAxis = shape.animation.axis;
+            rps = shape.animation.rps;
+            let sphere = createSphere(shape.center, shape.width, shape.height, shape.depth);
+            myVertices = sphere.vertices;
+            transform = shape.matrix;
+        }
+    
+        let numRotations = 360*(time - prev_time)*rps;
+
+        let toOrigin = new Matrix(4,4);
+        mat4x4Translate(toOrigin, -center.x, -center.y, -center.z);
+
+        let rotate = new Matrix(4,4);
+
+        if(rotationAxis == 'x') {
+            mat4x4RotateX(rotate, numRotations);
+        }
+        else if(rotationAxis == 'y') {
+            mat4x4RotateY(rotate, numRotations);
+        } 
+        else if(rotationAxis == 'z') {
+            mat4x4RotateZ(rotate, numRotations);
+        }
+
+        let back = new Matrix(4,4);
+        mat4x4Translate(back, center.x, center.y, center.z);
+        transform = Matrix.multiply([back, rotate, toOrigin]);
+        shape.matrix = transform;
+    }
+    prev_time = time;
 
     // step 3: draw scene
     drawScene();
 
     // step 4: request next animation frame (recursively calling same function)
     // (may want to leave commented out while debugging initially)
-    // window.requestAnimationFrame(animate);
+    window.requestAnimationFrame(animate);
 }
 
 // Main drawing code - use information contained in variable `scene`
@@ -178,7 +274,7 @@ function drawScene() {
         let clippedLines = []; // array of edges after clipping
 
         for (let j = 0; j < modelVertices.length; j++) {
-            let vertex = Matrix.multiply([transform, modelVertices[j]]);
+            let vertex = Matrix.multiply([transform, model.matrix, modelVertices[j]]);
             vertices.push(vertex);
         }
 
