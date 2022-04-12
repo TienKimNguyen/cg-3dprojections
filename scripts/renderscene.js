@@ -25,11 +25,11 @@ function init() {
     // initial scene... feel free to change this
     scene = {
         view: {
-            type: 'parallel', 
-            prp: Vector3(44, 20, -20),
-            srp: Vector3(20, 20, -45),
+            type: 'perspective', 
+            prp: Vector3(44, 20, -21),
+            srp: Vector3(20, 21, -45),
             vup: Vector3(0, 1, 0),
-            clip: [-20, 15, -20, 15, 12, 100]
+            clip: [-15, 5, -10, 10, 12, 100]
         },
         models: [
             {
@@ -616,32 +616,36 @@ function clipLinePerspective(line, z_min) {
 // Called when user presses a key on the keyboard down 
 // left and right need to be updated more
 function onKeyDown(event) {
+    /// define uvn axes
     let n_axis = scene.view.prp.subtract(scene.view.srp);
-    let u_axis = scene.view.vup.cross(n_axis);
     n_axis.normalize();
+    let u_axis = scene.view.vup.cross(n_axis);
     u_axis.normalize();
     let v_axis = n_axis.cross(u_axis);
-    let translatePRP = new Matrix(4,4);
-    mat4x4Translate(translatePRP, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);
-    let translatePRP2 = new Matrix(4,4);
-    mat4x4Translate(translatePRP2, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
+    v_axis.normalize();
+    // define transformation matrices for left/right
+    let toOrigin = new Matrix(4,4);
+    mat4x4Translate(toOrigin, -scene.view.prp.x, -scene.view.prp.y, -scene.view.prp.z);
+    let back = new Matrix(4,4);
+    mat4x4Translate(back, scene.view.prp.x, scene.view.prp.y, scene.view.prp.z);
     let rotateV = new Matrix(4,4);
-    let newSRP = Vector4(0,0,0,0);
+    let newSRP = new Matrix(4,1);
     let srpHomogenous = Vector4(scene.view.srp.x, scene.view.srp.y, scene.view.srp.z, 1);
     switch (event.keyCode) {
         case 37: // LEFT Arrow
             console.log("left");
-            mat4x4RotateGivenAxis(rotateV, v_axis, 5);
-            newSRP = Matrix.multiply([translatePRP2, rotateV, translatePRP, srpHomogenous]);
+            mat4x4RotateGivenAxis(rotateV, v_axis, -5);
+            newSRP = Matrix.multiply([back, rotateV, toOrigin, srpHomogenous]);
+            console.log(newSRP);
             scene.view.srp.x = newSRP.x;
             scene.view.srp.y = newSRP.y;
             scene.view.srp.z = newSRP.z;
             break;
         case 39: // RIGHT Arrow
             console.log("right");
-            mat4x4RotateGivenAxis(rotateV, v_axis, -5);
+            mat4x4RotateGivenAxis(rotateV, v_axis, 5);
             // translate PRP to orgin, multiply FIRST
-            newSRP = Matrix.multiply([translatePRP2, rotateV, translatePRP, srpHomogenous]);
+            newSRP = Matrix.multiply([back, rotateV, toOrigin, srpHomogenous]);
             scene.view.srp.x = newSRP.x;
             scene.view.srp.y = newSRP.y;
             scene.view.srp.z = newSRP.z;
