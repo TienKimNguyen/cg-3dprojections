@@ -2,7 +2,6 @@ let view;
 let ctx;
 let scene;
 let start_time;
-let prev_time;
 
 const LEFT = 32; // binary 100000
 const RIGHT = 16; // binary 010000
@@ -27,10 +26,10 @@ function init() {
     scene = {
         view: {
             type: 'perspective', 
-            prp: Vector3(0, 10, -5),
-            srp: Vector3(20, 15, -40),
-            vup: Vector3(1, 1, 0),
-            clip: [-12, 6, -12, 6, 10, 100]
+            prp: Vector3(44, 20, -20),
+            srp: Vector3(20, 20, -40),
+            vup: Vector3(0, 1, 0),
+            clip:  [-20, 15, -20, 15, 12, 100]
         },
         models: [
             {
@@ -58,7 +57,7 @@ function init() {
                 ],
                 matrix: new Matrix(4, 4),
                 animation: {
-                    axis: "z",
+                    axis: "x",
                     rps: 0.1
                 }
             },
@@ -82,8 +81,8 @@ function init() {
                 sides: 12,
                 matrix: new Matrix(4, 4),
                 animation: {
-                    axis: "x",
-                    rps: 0.5
+                    axis: "z",
+                    rps: 0.2
                 }
             },
             {
@@ -94,8 +93,8 @@ function init() {
                 sides: 12,
                 matrix: new Matrix(4, 4),
                 animation: {
-                    axis: "y",
-                    rps: 0.5
+                    axis: "x",
+                    rps: 1
                 }
             },
             {
@@ -107,7 +106,7 @@ function init() {
                 matrix: new Matrix(4, 4),
                 animation: {
                     axis: "y",
-                    rps: 0.5
+                    rps: 0.3
                 }
             }
         ]
@@ -118,99 +117,56 @@ function init() {
 
     // start animation loop
     start_time = performance.now();
-    prev_time = start_time; // current timestamp in milliseconds
     window.requestAnimationFrame(animate);
 }
 
 // Animation loop - repeatedly calls rendering code
 function animate(timestamp) {
     // step 1: calculate time (time since start)
-    let time = timestamp - start_time;
+    let time = (timestamp - start_time) / 1000.0;
 
     // step 2: transform models based on time
-    
-
-    for(let m = 0; m < scene.models.length; m++)
-    {
-        let shape = scene.models[m];
-        let modelType = shape.type;
-        let center = Vector4(0, 0, 0, 0);
-        let rotationAxis = 'x';
-        let rps = 0;
-        let myVertices = [];
-        let transform;
+    for(let m = 0; m < scene.models.length; m++){
+        let shape = scene.models[m]; // model
+        let modelType = shape.type; // type of model
+        let center = Vector4(0, 0, 0, 1); // center
+        let rotationAxis = shape.animation.axis; // rotation about axis
+        let rps = shape.animation.rps; // revolutions per sec
         
-        if(modelType == 'generic') {
-            let x = 0;
-            let y = 0; 
-            let z = 0;
+        // Find center of the shape => Translate the center to the origin
+        if (modelType == 'generic') {
             for(let i = 0; i < shape.vertices.length; i++) {
-                x += shape.vertices[i].x/shape.vertices.length;
-                y += shape.vertices[i].y/shape.vertices.length;
-                z += shape.vertices[i].z/shape.vertices.length;
-            }
-            center = Vector4(x, y, z, 1);
-            rotationAxis = shape.animation.axis;
-            rps = shape.animation.rps;
-            myVertices = shape.vertices;
-            transform = shape.matrix;
-        }
-        else if(modelType == 'cube') {
-            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
-            rotationAxis = shape.animation.axis;
-            rps = shape.animation.rps;
-            let cube = createCube(shape.center, shape.width, shape.height, shape.depth);
-            myVertices = cube.vertices;
-            transform = shape.matrix;
-        }
-        else if(modelType == 'cone') {
-            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
-            rotationAxis = shape.animation.axis;
-            rps = shape.animation.rps;
-            let cone = createCone(shape.center, shape.width, shape.height, shape.depth);
-            myVertices = cone.vertices;
-            transform = shape.matrix;
-        }
-        else if(modelType == 'cylinder') {
-            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
-            rotationAxis = shape.animation.axis;
-            rps = shape.animation.rps;
-            let cylinder = createCylinder(shape.center, shape.width, shape.height, shape.depth);
-            myVertices = cylinder.vertices;
-            transform = shape.matrix;
-        }
-        else if(modelType == 'sphere') {
-            center = Vector4(shape.center.x, shape.center.y, shape.center.z, 1);
-            rotationAxis = shape.animation.axis;
-            rps = shape.animation.rps;
-            let sphere = createSphere(shape.center, shape.width, shape.height, shape.depth);
-            myVertices = sphere.vertices;
-            transform = shape.matrix;
+                center.x += shape.vertices[i].x/shape.vertices.length;
+                center.y += shape.vertices[i].y/shape.vertices.length;
+                center.z += shape.vertices[i].z/shape.vertices.length;
+            }        
+        } else{
+            center = shape.center;
         }
     
-        let numRotations = 360*(time - prev_time)*rps;
+        let theta = 360 * rps * time; // angle of rotation based on time
 
         let toOrigin = new Matrix(4,4);
         mat4x4Translate(toOrigin, -center.x, -center.y, -center.z);
 
+        // Rotate the vertex about shape's indicated axis
         let rotate = new Matrix(4,4);
-
         if(rotationAxis == 'x') {
-            mat4x4RotateX(rotate, numRotations);
+            mat4x4RotateX(rotate, theta);
         }
         else if(rotationAxis == 'y') {
-            mat4x4RotateY(rotate, numRotations);
+            mat4x4RotateY(rotate, theta);
         } 
         else if(rotationAxis == 'z') {
-            mat4x4RotateZ(rotate, numRotations);
+            mat4x4RotateZ(rotate, theta);
         }
 
+        // Translate the a vertex back to where it was
         let back = new Matrix(4,4);
         mat4x4Translate(back, center.x, center.y, center.z);
-        transform = Matrix.multiply([back, rotate, toOrigin]);
-        shape.matrix = transform;
+
+        shape.matrix = Matrix.multiply([back, rotate, toOrigin]);
     }
-    prev_time = time;
 
     // step 3: draw scene
     drawScene();
@@ -223,7 +179,6 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     ctx.clearRect(0, 0, view.width, view.height);
-    console.log(scene);
     let projectionType = scene.view.type;
     let transform = new Matrix(4, 4); // N_par or N_per
     let projection_M = new Matrix(4, 4); // M_par or M_per
@@ -265,10 +220,6 @@ function drawScene() {
             modelVertices = sphere.vertices;
             modelEdges = sphere.edges;
         }
-        
-
-        //console.log(modelVertices);
-        //console.log(modelEdges)
 
         let vertices = []; // list of vertices after 3D transformation
         let clippedLines = []; // array of edges after clipping
@@ -737,7 +688,6 @@ function onKeyDown(event) {
             console.log("left");
             mat4x4RotateGivenAxis(rotateV, v_axis, 5);
             newSRP = Matrix.multiply([back, rotateV, toOrigin, srpHomogenous]);
-            console.log(newSRP);
             scene.view.srp.x = newSRP.x;
             scene.view.srp.y = newSRP.y;
             scene.view.srp.z = newSRP.z;
