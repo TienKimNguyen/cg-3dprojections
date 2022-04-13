@@ -26,10 +26,10 @@ function init() {
     scene = {
         view: {
             type: 'perspective',
-            prp: Vector3(44, 20, -20),
-            srp: Vector3(20, 20, -40),
+            prp: Vector3(44, 20, -21),
+            srp: Vector3(18, 20, -43),
             vup: Vector3(0, 1, 0),
-            clip: [-20, 15, -20, 15, 12, 100]
+            clip: [-15, 5, -10, 10, 12, 100]
         },
         models: [
             {
@@ -58,12 +58,12 @@ function init() {
                 matrix: new Matrix(4, 4),
                 animation: {
                     axis: "y",
-                    rps: 0.1
+                    rps: 0
                 }
             },
             {
                 type: "cube",
-                center: Vector3(0, 20, -30),
+                center: Vector3(-5, 35, -35),
                 width: 8,
                 height: 8,
                 depth: 8,
@@ -75,10 +75,10 @@ function init() {
             },
             {
                 type: "cylinder",
-                center: Vector3(0, 10, -20),
+                center: Vector3(-5, 10, -25),
                 radius: 5,
                 height: 10,
-                sides: 12,
+                sides: 40,
                 matrix: new Matrix(4, 4),
                 animation: {
                     axis: "y",
@@ -90,7 +90,7 @@ function init() {
                 center: Vector3(0, 30, -20),
                 radius: 5,
                 height: 10,
-                sides: 12,
+                sides: 25,
                 matrix: new Matrix(4, 4),
                 animation: {
                     axis: "x",
@@ -101,8 +101,8 @@ function init() {
                 type: "sphere",
                 center: Vector3(10, 40, -50),
                 radius: 10,
-                slices: 10,
-                stacks: 10,
+                slices: 20,
+                stacks: 20,
                 matrix: new Matrix(4, 4),
                 animation: {
                     axis: "z",
@@ -183,7 +183,6 @@ function animate(timestamp) {
 // Main drawing code - use information contained in variable `scene`
 function drawScene() {
     ctx.clearRect(0, 0, view.width, view.height);
-
     let projectionType = scene.view.type; // projection type
     let transform = new Matrix(4, 4); // N_par or N_per
     let projection_M = new Matrix(4, 4); // M_par or M_per
@@ -294,8 +293,8 @@ function drawScene() {
         }
 
         // Draw line
-        for (let i = 0; i < pt0Array.length; i++) {
-            drawLine(pt0Array[i].x, pt0Array[i].y, pt1Array[i].x, pt1Array[i].y);
+        for (let k = 0; k < pt0Array.length; k++) {
+            drawLine(pt0Array[k].x, pt0Array[k].y, pt1Array[k].x, pt1Array[k].y, i);
         }
     }
 }
@@ -769,14 +768,23 @@ function loadNewScene() {
 }
 
 // Draw black 2D line with red endpoints 
-function drawLine(x1, y1, x2, y2) {
-    ctx.strokeStyle = '#000000';
+function drawLine(x1, y1, x2, y2, index) {
+    // colors red through pink
+    let color = ["rgb(255,0,0)", "rgb(255,128,0)", "rgb(255,255,0)", "rgb(0,255,0)", "rgb(51, 51, 255)", "rgb(153, 51, 255)", "rgb(255, 51, 255)", "rgb(255, 0, 127)"];
+    let myIndex = index*2 % color.length;
+    var gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+    gradient.addColorStop("0", color[myIndex]);
+    gradient.addColorStop("0.25" , color[(myIndex + 1)%color.length]);
+    gradient.addColorStop(".5", color[(myIndex + 2)%color.length]);
+    gradient.addColorStop("0.75" , color[(myIndex + 3)%color.length]);
+    gradient.addColorStop("1.0", color[(myIndex + 4)%color.length]);
+    ctx.strokeStyle = gradient;
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.stroke();
 
-    ctx.fillStyle = '#FF0000';
+    ctx.fillStyle = '#000000';
     ctx.fillRect(x1 - 2, y1 - 2, 4, 4);
     ctx.fillRect(x2 - 2, y2 - 2, 4, 4);
 }
