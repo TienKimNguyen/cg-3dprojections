@@ -1,0 +1,33 @@
+{
+    "view": {
+        "type": "parallel",
+        "prp": [44, 20, -20],
+        "srp": [20, 20, -40],
+        "vup": [0, 1, 0],
+        "clip": [-20, 15, -20, 15, 12, 100]
+    },
+    "models": [
+        {
+            "type": "sphere",
+            "center": [0, 10, -50],
+            "radius": 5,
+            "slices": 10,
+            "stacks": 10,
+            "animation": {
+                "axis": "x",
+                "rps": 0.5
+            }
+        },
+        {
+            "type": "cone",
+                "center": [0, 10, -35],
+                "radius": 5,
+                "height": 10,
+                "sides": 25,
+                "animation": {
+                    "axis": "y",
+                    "rps": 0.2
+                }
+        }
+    ]
+}
